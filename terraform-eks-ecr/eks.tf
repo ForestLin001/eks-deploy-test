@@ -5,14 +5,14 @@
 resource "aws_eks_cluster" "eks" {
   name     = "${var.project_name}-eks"
   role_arn = aws_iam_role.eks_cluster.arn
-  version  = "1.27"
+  version  = var.eks_version
   vpc_config {
     subnet_ids = concat(
       aws_subnet.public[*].id,
       aws_subnet.private[*].id
     )
-    endpoint_private_access = true
-    endpoint_public_access  = true
+    endpoint_private_access = var.endpoint_private_access
+    endpoint_public_access  = var.endpoint_public_access
   }
   depends_on = [aws_iam_role_policy_attachment.eks_cluster_AmazonEKSClusterPolicy]
 }

@@ -48,3 +48,45 @@ variable "ami_type" {
   type        = string
   default     = "AL2_x86_64"
 }
+
+variable "eks_version" {
+  description = "EKS cluster version"
+  type        = string
+  default     = "1.27"
+}
+
+variable "endpoint_private_access" {
+  description = "Enable private access to EKS endpoint"
+  type        = bool
+  default     = true
+}
+
+variable "endpoint_public_access" {
+  description = "Enable public access to EKS endpoint"
+  type        = bool
+  default     = true
+}
+
+variable "enable_dns_support" {
+  description = "Enable DNS support in VPC"
+  type        = bool
+  default     = true
+}
+
+variable "enable_dns_hostnames" {
+  description = "Enable DNS hostnames in VPC"
+  type        = bool
+  default     = true
+}
+
+variable "public_subnet_count" {
+  description = "Number of public subnets"
+  type        = number
+  default     = 2
+}
+
+variable "private_subnet_count" {
+  description = "Number of private subnets"
+  type        = number
+  default     = 2
+}
