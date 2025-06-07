@@ -4,42 +4,46 @@
 
 ## 目录结构
 
-```txt
-├── .github/workflows/eks-deploy.yaml   # GitHub Actions CI/CD 流程定义
-├── Makefile                            # 常用自动化命令
-├── check_aws_resources.sh              # 检查 AWS 资源脚本
-├── go-service/                         # Go 微服务源码与 Dockerfile
-│   ├── Dockerfile
-│   ├── go.mod
-│   └── main.go
-├── python-service/                     # Python 微服务源码与 Dockerfile
-│   ├── Dockerfile
-│   ├── main.py
-│   └── requirements.txt
-├── k8s/                                # Kubernetes 资源清单
-│   ├── 00-namespace.yaml               # 命名空间定义
-│   ├── go-deployment.yaml              # Go 服务 Deployment
-│   ├── python-deployment.yaml          # Python 服务 Deployment
-│   └── ingress.yaml                    # Ingress 入口配置
-└── terraform-eks-ecr/                  # 基础设施 IaC 代码
-    ├── provider.tf                     # Terraform Provider 配置
-    ├── vpc.tf                          # VPC 及网络资源
-    ├── eks.tf                          # EKS 集群与节点组
-    ├── ecr.tf                          # ECR 仓库
-    ├── alb.tf                          # ALB Controller 相关资源
-    ├── github.tf                       # GitHub Actions OIDC 及相关 IAM
-    ├── variables.tf                    # 变量定义
-    └── outputs.tf                      # 输出变量
-```
+    ```txt
+    .
+    ├── .github/
+    │   └── workflows/
+    │       └── eks-deploy.yaml         # GitHub Actions CI/CD 流程定义
+    ├── Makefile                        # 常用自动化命令
+    ├── README.md                       # 项目说明文档
+    ├── check_aws_resources.sh          # 检查 AWS 资源的脚本
+    ├── dev.tfvars                      # Terraform 变量文件（开发环境）
+    ├── go-service/                     # Go 服务源码与 Dockerfile
+    │   ├── Dockerfile
+    │   ├── go.mod
+    │   └── main.go
+    ├── k8s/                            # Kubernetes 部署相关 YAML 文件
+    │   ├── 00-namespace.yaml
+    │   ├── go-deployment.yaml
+    │   ├── ingress.yaml
+    │   └── python-deployment.yaml
+    ├── python-service/                 # Python 服务源码与 Dockerfile
+    │   ├── Dockerfile
+    │   ├── main.py
+    │   └── requirements.txt
+    └── terraform-eks-ecr/              # Terraform 相关配置
+        ├── alb.tf
+        ├── ecr.tf
+        ├── eks.tf
+        ├── github.tf
+        ├── outputs.tf
+        ├── provider.tf
+        ├── variables.tf
+        └── vpc.tf
+    ```
 
 ## 快速开始
 
 1. 初始化并部署基础设施：
 
     ```bash
-    cd terraform-eks-ecr
-    terraform init
-    terraform apply
+    make tf-init
+    make tf-apply TFVARS=dev.tfvars
     ```
 
 2. 构建并推送镜像（推荐使用 Makefile 命令）：

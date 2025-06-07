@@ -5,24 +5,24 @@
 variable "aws_region" {
   description = "AWS region"
   type        = string
-  default     = "ap-southeast-1"
+  default     = "your-region"
 }
 
 variable "project_name" {
   description = "Prefix for resource naming"
-  default     = "sentienfi-test"
+  default     = "your-project-name"
 }
 
 variable "vpc_cidr_block" {
   description = "VPC CIDR block"
   type        = string
-  default     = "10.2.0.0/16"
+  default     = "your-cidr-block"
 }
 
 variable "service_names" {
   description = "List of service names for ECR repositories"
   type        = list(string)
-  default     = ["python-service", "go-service"]
+  default     = ["your-service1", "your-service2"]
 }
 
 variable "ec2_ssh_key" {
@@ -34,7 +34,7 @@ variable "ec2_ssh_key" {
 variable "instance_types" {
   description = "EC2 instance types for EKS worker nodes"
   type        = list(string)
-  default     = ["t3.medium"]
+  default     = ["your-instance-type1", "your-instance-type2"]
 }
 
 variable "disk_size" {
@@ -46,7 +46,7 @@ variable "disk_size" {
 variable "ami_type" {
   description = "AMI type for EKS worker nodes"
   type        = string
-  default     = "AL2_x86_64"
+  default     = "your-ami-type"
 }
 
 variable "eks_version" {
