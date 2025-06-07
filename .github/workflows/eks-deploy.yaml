@@ -4,10 +4,12 @@
 #
 # Name                   Description
 # AWS_ACCOUNT_ID         Your AWS Account ID
+# AWS_REGION             Your AWS Region
 # AWS_GITHUB_ROLE_ARN    GitHub OIDC Role ARN output from terraform apply
 #
 # Example:
 #   AWS_ACCOUNT_ID=123456789012
+#   AWS_REGION=ap-southeast-1
 #   AWS_GITHUB_ROLE_ARN=arn:aws:iam::123456789012:role/aurion-github-actions-role
 #
 # Usage:
@@ -25,7 +27,7 @@ on:
   workflow_dispatch:
 
 env:
-  AWS_REGION: ap-southeast-1
+  AWS_REGION: ${{ secrets.AWS_REGION }}
   AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
 
 jobs:
