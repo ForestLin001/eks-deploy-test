@@ -1,3 +1,22 @@
+# This workflow will build and deploy a Python and Go application to EKS
+
+# Required secrets to be added in GitHub repository Settings → Secrets and variables → Actions:
+#
+# Name                   Description
+# AWS_ACCOUNT_ID         Your AWS Account ID
+# AWS_GITHUB_ROLE_ARN    GitHub OIDC Role ARN output from terraform apply
+#
+# Example:
+#   AWS_ACCOUNT_ID=123456789012
+#   AWS_GITHUB_ROLE_ARN=arn:aws:iam::123456789012:role/aurion-github-actions-role
+#
+# Usage:
+# Push changes to main branch, GitHub Actions will automatically:
+#   - Login to ECR
+#   - Build and push images
+#   - Deploy to EKS
+# You can also manually trigger via "Run workflow" in GitHub Web interface.
+
 name: Build & Deploy via Makefile
 
 on:
