@@ -25,10 +25,10 @@ tf-destroy:
 	cd terraform-eks-ecr && terraform destroy -var-file=$(TFVARS) -auto-approve
 
 build-python:
-	docker build -t python-service ./python-service
+	docker build --platform=linux/amd64 -t python-service ./python-service
 
 build-go:
-	docker build -t go-service ./go-service
+	docker build --platform=linux/amd64 -t go-service ./go-service
 
 push-python: build-python
 	docker tag python-service:latest $(PYTHON_REPO):latest
@@ -42,7 +42,12 @@ login-ecr:
 	aws ecr get-login-password --region $(REGION) | docker login --username AWS --password-stdin $(AWS_ACCOUNT_ID).dkr.ecr.$(REGION).amazonaws.com
 
 deploy:
-	kubectl apply -f k8s/
+	export AWS_ACCOUNT_ID=$(AWS_ACCOUNT_ID) && \
+    export REGION=$(REGION) && \
+    envsubst < k8s/python-deployment.yaml | kubectl apply -f - && \
+    envsubst < k8s/go-deployment.yaml | kubectl apply -f - && \
+    kubectl apply -f k8s/00-namespace.yaml -f k8s/ingress.yaml && \
+    kubectl rollout restart deployment/python-service deployment/go-service -n digitalaurion-test
 
 destroy:
 	kubectl delete -f k8s/
