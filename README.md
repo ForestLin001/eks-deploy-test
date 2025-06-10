@@ -1,6 +1,6 @@
 # DevOps EKS Deploy Test
 
-本项目演示如何使用 Terraform 自动化部署 AWS EKS 集群、ECR 仓库，并通过 CI/CD 部署 Python 和 Go 微服务到 Kubernetes。
+本项目实验如何使用 Terraform 自动化部署 AWS EKS 集群、ECR 仓库，并通过 CI/CD 部署 Python 和 Go 微服务到 Kubernetes。
 
 ## 目录结构
 

@@ -1,93 +1,28 @@
 /*
-  This file provisions the Virtual Private Cloud (VPC) 
-  and related networking resources.
+  This file provisions the Virtual Private Cloud (VPC) and related networking resources using the official terraform-aws-vpc module.
 */
-resource "aws_vpc" "eks_vpc" {
-  cidr_block           = var.vpc_cidr_block
-  enable_dns_support   = var.enable_dns_support
-  enable_dns_hostnames = var.enable_dns_hostnames
-  tags = {
-    Name = "${var.project_name}-vpc"
-  }
-}
-
 data "aws_availability_zones" "available" {}
 
-resource "aws_subnet" "public" {
-  count                   = var.public_subnet_count
-  vpc_id                  = aws_vpc.eks_vpc.id
-  cidr_block              = cidrsubnet(aws_vpc.eks_vpc.cidr_block, 8, count.index)
-  availability_zone       = data.aws_availability_zones.available.names[count.index]
-  map_public_ip_on_launch = true
-  tags = {
-    Name = "${var.project_name}-public-${count.index}"
-    "kubernetes.io/role/elb" = 1
-  }
-}
+module "vpc" {
+  source  = "terraform-aws-modules/vpc/aws"
+  version = "5.1.0"
 
-resource "aws_subnet" "private" {
-  count             = var.private_subnet_count
-  vpc_id            = aws_vpc.eks_vpc.id
-  cidr_block        = cidrsubnet(aws_vpc.eks_vpc.cidr_block, 8, count.index + 10)
-  availability_zone = data.aws_availability_zones.available.names[count.index]
-  tags = {
-    Name = "${var.project_name}-private-${count.index}"
-    "kubernetes.io/role/internal-elb" = 1
-  }
-}
+  name = var.project_name
+  cidr = var.vpc_cidr_block
 
-resource "aws_internet_gateway" "igw" {
-  vpc_id = aws_vpc.eks_vpc.id
-  tags = {
-    Name = "${var.project_name}-igw"
-  }
-}
+  private_subnet_tags = { "kubernetes.io/role/internal-elb" = 1 }
+  public_subnet_tags  = { "kubernetes.io/role/elb" = 1 }
 
-resource "aws_eip" "nat" {
-  count = var.public_subnet_count
-}
+  azs             = slice(data.aws_availability_zones.available.names, 0, max(var.public_subnet_count, var.private_subnet_count))
+  private_subnets = [for i in range(var.private_subnet_count) : cidrsubnet(var.vpc_cidr_block, 8, i)]
+  public_subnets  = [for i in range(var.public_subnet_count) : cidrsubnet(var.vpc_cidr_block, 8, 100 + i)]
+  private_subnet_names = [for i in range(var.private_subnet_count) : "${var.project_name}-private-${i}"]
+  public_subnet_names  = [for i in range(var.public_subnet_count) : "${var.project_name}-public-${i}"]
 
-resource "aws_nat_gateway" "nat" {
-  count         = var.public_subnet_count
-  allocation_id = aws_eip.nat[count.index].id
-  subnet_id     = aws_subnet.public[count.index].id
-  depends_on    = [aws_internet_gateway.igw]
-  tags = {
-    Name = "${var.project_name}-nat-${count.index}"
-  }
-}
+  enable_nat_gateway = true
+  single_nat_gateway = true
+  enable_dns_hostnames = true
+  enable_dns_support   = true
 
-resource "aws_route_table" "public" {
-  vpc_id = aws_vpc.eks_vpc.id
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.igw.id
-  }
-  tags = {
-    Name = "${var.project_name}-public-rt"
-  }
-}
-
-resource "aws_route_table_association" "public" {
-  count          = var.public_subnet_count
-  subnet_id      = aws_subnet.public[count.index].id
-  route_table_id = aws_route_table.public.id
-}
-
-resource "aws_route_table" "private" {
-  count = var.private_subnet_count
-  vpc_id = aws_vpc.eks_vpc.id
-  route {
-    cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.nat[count.index].id
-  }
-  tags = {
-    Name = "${var.project_name}-private-rt-${count.index}"
-  }
-}
-
-resource "aws_route_table_association" "private" {
-  count          = var.private_subnet_count
-  subnet_id      = aws_subnet.private[count.index].id
-  route_table_id = aws_route_table.private[count.index].id
+  tags = var.vpc_tags
 }

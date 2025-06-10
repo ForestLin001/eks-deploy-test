@@ -1,15 +1,19 @@
 aws_region            = "ap-southeast-1"
 project_name          = "sentienfi-test"
+cluster_name          = "sentienfi-test-cluster"
 vpc_cidr_block        = "10.2.0.0/16"
 service_names         = ["python-service", "go-service"]
-ec2_ssh_key           = "your-key-name"
 instance_types        = ["t3.medium"]
 disk_size             = 20
-ami_type              = "AL2_x86_64"
-eks_version           = "1.27"
-endpoint_private_access = true
+ami_type              = "AL2023_x86_64_STANDARD"
+eks_version           = "1.33"
+endpoint_private_access = false
 endpoint_public_access  = true
 enable_dns_support      = true
 enable_dns_hostnames    = true
-public_subnet_count     = 2
-private_subnet_count    = 2
+public_subnet_count     = 3
+private_subnet_count    = 3
+vpc_tags = {
+  Terraform   = "true"
+  Environment = "dev"
+}

@@ -20,3 +20,7 @@ output "ecr_repo_urls" {
 output "github_oidc_role_arn" {
   value = aws_iam_role.github_actions.arn
 }
+
+output "oidc_provider_url" {
+  value = module.eks.cluster_oidc_issuer_url
+}

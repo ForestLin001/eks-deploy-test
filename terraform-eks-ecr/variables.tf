@@ -10,7 +10,14 @@ variable "aws_region" {
 
 variable "project_name" {
   description = "Prefix for resource naming"
+  type        = string
   default     = "your-project-name"
+}
+
+variable "cluster_name" {
+  description = "EKS cluster name"
+  type        = string
+  default     = "your-cluster-name"
 }
 
 variable "vpc_cidr_block" {
@@ -23,12 +30,6 @@ variable "service_names" {
   description = "List of service names for ECR repositories"
   type        = list(string)
   default     = ["your-service1", "your-service2"]
-}
-
-variable "ec2_ssh_key" {
-  description = "EC2 SSH key pair name for EKS worker nodes"
-  type        = string
-  default     = "your-key-name"
 }
 
 variable "instance_types" {
@@ -52,7 +53,7 @@ variable "ami_type" {
 variable "eks_version" {
   description = "EKS cluster version"
   type        = string
-  default     = "1.27"
+  default     = "1.33"
 }
 
 variable "endpoint_private_access" {
@@ -89,4 +90,13 @@ variable "private_subnet_count" {
   description = "Number of private subnets"
   type        = number
   default     = 2
+}
+
+variable "vpc_tags" {
+  description = "Tags to apply to the VPC and related resources"
+  type        = map(string)
+  default     = {
+    Terraform   = "true"
+    Environment = "your-environment"
+  }
 }
