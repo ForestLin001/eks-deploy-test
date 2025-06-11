@@ -25,14 +25,25 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
-
-env:
-  AWS_REGION: ${{ secrets.AWS_REGION }}
-  AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+    inputs:
+      environment:
+        description: '部署环境 (dev/test/prod)'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+        - dev
+        - test
+        - prod
 
 jobs:
   build-deploy:
     runs-on: ubuntu-latest
+    # 根据触发方式和分支确定环境
+    environment: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || (github.ref == 'refs/heads/main' && 'prod' || (github.ref == 'refs/heads/test' && 'test' || 'dev')) }}
+    env:
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
 
     steps:
     - name: Checkout code
