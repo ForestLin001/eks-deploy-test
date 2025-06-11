@@ -58,6 +58,19 @@ module "eks" {
         }
       }
     }
+    
+    # 为 GitHub Actions 角色添加集群管理员权限
+    github-actions-role = {
+      principal_arn = aws_iam_role.github_actions.arn
+      policy_associations = {
+        this = {
+          policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+          access_scope = {
+            type = "cluster"
+          }
+        }
+      }
+    }
 
     # 为构建/部署角色添加集群管理员权限
     # build-role = {
