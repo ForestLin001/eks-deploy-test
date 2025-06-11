@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: go-service
-          image: ${AWS_ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com/go-service:latest
+          image: ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/go-service:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8080

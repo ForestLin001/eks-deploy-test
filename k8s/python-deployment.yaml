@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: python-service
-          image: ${AWS_ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com/python-service:latest
+          image: ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/python-service:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8000

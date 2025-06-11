@@ -1,9 +1,9 @@
 # Makefile for eks-deploy-test
 
 AWS_ACCOUNT_ID := 440744252731
-REGION := ap-southeast-1
-PYTHON_REPO := $(AWS_ACCOUNT_ID).dkr.ecr.$(REGION).amazonaws.com/python-service
-GO_REPO := $(AWS_ACCOUNT_ID).dkr.ecr.$(REGION).amazonaws.com/go-service
+AWS_REGION := ap-southeast-1
+PYTHON_REPO := $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/python-service
+GO_REPO := $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/go-service
 TFVARS ?= dev.tfvars
 
 .PHONY: tf-init tf-plan tf-apply tf-destroy
@@ -39,11 +39,11 @@ push-go: build-go
 	docker push $(GO_REPO):latest
 
 login-ecr:
-	aws ecr get-login-password --region $(REGION) | docker login --username AWS --password-stdin $(AWS_ACCOUNT_ID).dkr.ecr.$(REGION).amazonaws.com
+	aws ecr get-login-password --region $(AWS_REGION) | docker login --username AWS --password-stdin $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com
 
 deploy:
 	export AWS_ACCOUNT_ID=$(AWS_ACCOUNT_ID) && \
-    export REGION=$(REGION) && \
+    export AWS_REGION=$(AWS_REGION) && \
     envsubst < k8s/python-deployment.yaml | kubectl apply -f - && \
     envsubst < k8s/go-deployment.yaml | kubectl apply -f - && \
     kubectl apply -f k8s/00-namespace.yaml -f k8s/ingress.yaml && \
