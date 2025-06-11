@@ -5,6 +5,7 @@ AWS_REGION := ap-southeast-1
 PYTHON_REPO := $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/python-service
 GO_REPO := $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/go-service
 CLUSTER_NAME := sentienfi-test-cluster
+NAMESPACE := digitalaurion-test
 TFVARS ?= dev.tfvars
 
 .PHONY: tf-init tf-plan tf-apply tf-destroy
@@ -46,11 +47,12 @@ deploy:
 	aws eks update-kubeconfig --name $(CLUSTER_NAME) --region $(AWS_REGION) && \
 	export AWS_ACCOUNT_ID=$(AWS_ACCOUNT_ID) && \
 	export AWS_REGION=$(AWS_REGION) && \
+	export NAMESPACE=$(NAMESPACE) && \
 	kubectl config use-context arn:aws:eks:$(AWS_REGION):$(AWS_ACCOUNT_ID):cluster/$(CLUSTER_NAME) && \
 	envsubst < k8s/python-deployment.yaml | kubectl apply --validate=false -f - && \
 	envsubst < k8s/go-deployment.yaml | kubectl apply --validate=false -f - && \
 	kubectl apply --validate=false -f k8s/00-namespace.yaml -f k8s/ingress.yaml && \
-	kubectl rollout restart deployment/python-service deployment/go-service -n digitalaurion-test
+	kubectl rollout restart deployment/python-service deployment/go-service -n $(NAMESPACE)
 
 destroy:
 	kubectl delete -f k8s/
