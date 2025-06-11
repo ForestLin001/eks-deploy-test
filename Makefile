@@ -55,6 +55,7 @@ deploy:
 	envsubst < k8s/go-deployment.yaml | kubectl apply --validate=false -f - && \
 	envsubst < k8s/00-namespace.yaml | kubectl apply --validate=false -f - && \
 	envsubst < k8s/ingress.yaml | kubectl apply --validate=false -f - && \
+	envsubst < k8s/hpa.yaml | kubectl apply --validate=false -f - && \
 	kubectl rollout restart deployment/python-service deployment/go-service -n $(NAMESPACE)
 
 destroy:
