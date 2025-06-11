@@ -46,3 +46,33 @@ resource "aws_iam_role_policy_attachment" "eks_access" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
 }
 
+# 创建自定义 EKS 访问策略
+resource "aws_iam_policy" "eks_deployment_policy" {
+  name        = "${var.project_name}-eks-deployment-policy"
+  description = "Policy for GitHub Actions to deploy to EKS"
+  
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "eks:DescribeCluster",
+          "eks:ListClusters",
+          "eks:DescribeNodegroup",
+          "eks:ListNodegroups",
+          "eks:UpdateClusterConfig",
+          "eks:UpdateNodegroupConfig"
+        ],
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+# 附加自定义策略到 GitHub Actions 角色
+resource "aws_iam_role_policy_attachment" "eks_deployment_access" {
+  role       = aws_iam_role.github_actions.name
+  policy_arn = aws_iam_policy.eks_deployment_policy.arn
+}
+
