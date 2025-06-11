@@ -42,6 +42,7 @@ login-ecr:
 	aws ecr get-login-password --region $(AWS_REGION) | docker login --username AWS --password-stdin $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com
 
 deploy:
+	aws eks update-kubeconfig --name $(shell cd terraform-eks-ecr && terraform output -raw cluster_name) --region $(AWS_REGION) && \
 	export AWS_ACCOUNT_ID=$(AWS_ACCOUNT_ID) && \
     export AWS_REGION=$(AWS_REGION) && \
     envsubst < k8s/python-deployment.yaml | kubectl apply -f - && \
