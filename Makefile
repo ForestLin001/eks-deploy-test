@@ -4,6 +4,7 @@ AWS_ACCOUNT_ID := 440744252731
 AWS_REGION := ap-southeast-1
 PYTHON_REPO := $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/python-service
 GO_REPO := $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/go-service
+CLUSTER_NAME := sentienfi-test-cluster
 TFVARS ?= dev.tfvars
 
 .PHONY: tf-init tf-plan tf-apply tf-destroy
@@ -42,7 +43,7 @@ login-ecr:
 	aws ecr get-login-password --region $(AWS_REGION) | docker login --username AWS --password-stdin $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com
 
 deploy:
-	aws eks update-kubeconfig --name $(shell cd terraform-eks-ecr && terraform output -raw cluster_name) --region $(AWS_REGION) && \
+	aws eks update-kubeconfig --name $(CLUSTER_NAME) --region $(AWS_REGION) && \
 	export AWS_ACCOUNT_ID=$(AWS_ACCOUNT_ID) && \
     export AWS_REGION=$(AWS_REGION) && \
     envsubst < k8s/python-deployment.yaml | kubectl apply -f - && \

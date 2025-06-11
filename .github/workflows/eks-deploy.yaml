@@ -47,6 +47,7 @@ jobs:
     env:
       AWS_REGION: ${{ secrets.AWS_REGION }}
       AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+      CLUSTER_NAME: ${{ secrets.CLUSTER_NAME }}
 
     steps:
     - name: Checkout code
