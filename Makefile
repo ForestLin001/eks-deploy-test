@@ -5,6 +5,7 @@ AWS_REGION := ap-southeast-1
 PYTHON_REPO := $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/python-service
 GO_REPO := $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/go-service
 CLUSTER_NAME := sentienfi-test-cluster
+ALB_GROUP_NAME := sentienfi-test-alb-group
 NAMESPACE ?= digitalaurion-test
 TFVARS ?= dev.tfvars
 
@@ -48,6 +49,7 @@ deploy:
 	export AWS_ACCOUNT_ID=$(AWS_ACCOUNT_ID) && \
 	export AWS_REGION=$(AWS_REGION) && \
 	export NAMESPACE=$(NAMESPACE) && \
+	export ALB_GROUP_NAME=$(ALB_GROUP_NAME) && \
 	kubectl config use-context arn:aws:eks:$(AWS_REGION):$(AWS_ACCOUNT_ID):cluster/$(CLUSTER_NAME) && \
 	envsubst < k8s/python-deployment.yaml | kubectl apply --validate=false -f - && \
 	envsubst < k8s/go-deployment.yaml | kubectl apply --validate=false -f - && \

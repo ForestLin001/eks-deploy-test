@@ -15,5 +15,6 @@ public_subnet_count     = 3
 private_subnet_count    = 3
 vpc_tags = {
   Terraform   = "true"
-  Environment = "dev"
+  Environment = "test"
 }
+github_repo             = "aurion-group/*"
