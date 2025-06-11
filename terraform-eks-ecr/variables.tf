@@ -100,3 +100,9 @@ variable "vpc_tags" {
     Environment = "your-environment"
   }
 }
+
+variable "github_repo" {
+  description = "GitHub repository in format: owner/repo"
+  type        = string
+  default     = "aurion-group/*"
+}
