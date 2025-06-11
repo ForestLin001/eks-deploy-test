@@ -45,12 +45,12 @@ login-ecr:
 deploy:
 	aws eks update-kubeconfig --name $(CLUSTER_NAME) --region $(AWS_REGION) && \
 	export AWS_ACCOUNT_ID=$(AWS_ACCOUNT_ID) && \
-    export AWS_REGION=$(AWS_REGION) && \
-    kubectl config use-context arn:aws:eks:$(AWS_REGION):$(AWS_ACCOUNT_ID):cluster/$(CLUSTER_NAME) && \
-    envsubst < k8s/python-deployment.yaml | kubectl apply -f --validate=false - && \
-    envsubst < k8s/go-deployment.yaml | kubectl apply -f --validate=false - && \
-    kubectl apply -f k8s/00-namespace.yaml -f k8s/ingress.yaml --validate=false && \
-    kubectl rollout restart deployment/python-service deployment/go-service -n digitalaurion-test
+	export AWS_REGION=$(AWS_REGION) && \
+	kubectl config use-context arn:aws:eks:$(AWS_REGION):$(AWS_ACCOUNT_ID):cluster/$(CLUSTER_NAME) && \
+	envsubst < k8s/python-deployment.yaml | kubectl apply --validate=false -f - && \
+	envsubst < k8s/go-deployment.yaml | kubectl apply --validate=false -f - && \
+	kubectl apply --validate=false -f k8s/00-namespace.yaml -f k8s/ingress.yaml && \
+	kubectl rollout restart deployment/python-service deployment/go-service -n digitalaurion-test
 
 destroy:
 	kubectl delete -f k8s/
