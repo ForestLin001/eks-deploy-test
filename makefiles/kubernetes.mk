@@ -22,13 +22,15 @@ define deploy_env
 			envsubst < k8s/01-service-deployment-template.yaml | kubectl apply --validate=false -f -; \
 			set -a && source "envs/$(1)/.env" && source "envs/$(1)/$$service.env" && export SERVICE_NAME=$$service && \
 			envsubst < k8s/02-hpa-template.yaml | kubectl apply --validate=false -f -; \
+			echo "Deploying ingress for $$service..."; \
+			set -a && source "envs/$(1)/.env" && source "envs/$(1)/$$service.env" && \
+			export SERVICE_NAME=$$service && \
+			export SERVICE_PATH=`grep "^SERVICE_PATH=" "envs/$(1)/$$service.env" | cut -d'=' -f2 || echo "/$$service"` && \
+			envsubst < k8s/03-ingress-template.yaml | kubectl apply --validate=false -f -; \
 		else \
 			echo "Warning: No config file found for $$service, skipping..."; \
 		fi; \
 	done && \
-	echo "Generating and deploying ingress with dynamic paths..." && \
-	export INGRESS_PATHS="$(call generate_ingress_paths,$(1))" && \
-	envsubst < k8s/03-ingress-template.yaml | kubectl apply --validate=false -f - && \
 	echo "Restarting all service deployments..." && \
 	for service in $(SERVICES); do \
 		if kubectl get deployment $$service -n $(NAMESPACE) >/dev/null 2>&1; then \
@@ -102,28 +104,6 @@ destroy-prod:
 destroy:
 	@echo "Destroying namespace: $(NAMESPACE)"
 	kubectl delete namespace $(NAMESPACE) --ignore-not-found=true
-
-# 生成 ingress 路径的函数（从配置文件读取）
-define generate_ingress_paths
-$(shell \
-	paths=""; \
-	for service in $(SERVICES); do \
-		if [ -f "envs/$(1)/$$service.env" ]; then \
-			service_path=$$(grep "^SERVICE_PATH=" "envs/$(1)/$$service.env" | cut -d'=' -f2); \
-			if [ -z "$$service_path" ]; then \
-				service_path="/$$(echo $$service | sed 's/-service//')"; \
-			fi; \
-			paths="$$paths          - path: $$service_path\n"; \
-			paths="$$paths            pathType: Prefix\n"; \
-			paths="$$paths            backend:\n"; \
-			paths="$$paths              service:\n"; \
-			paths="$$paths                name: $$service\n"; \
-			paths="$$paths                port:\n"; \
-			paths="$$paths                  number: 80\n"; \
-		fi; \
-	done; \
-	echo "$$paths")
-endef
 
 # 检查环境状态
 status-%:
