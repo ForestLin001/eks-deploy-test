@@ -63,10 +63,10 @@ jobs:
       run: make login-ecr
 
     - name: Build & Push Python Image
-      run: make push-python
+      run: make push-python-service
 
     - name: Build & Push Go Image
-      run: make push-go
+      run: make push-go-service
 
     - name: Deploy to EKS
-      run: make deploy
+      run: make deploy-test

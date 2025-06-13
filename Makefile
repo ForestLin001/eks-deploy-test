@@ -1,62 +1,21 @@
-# Makefile for eks-deploy-test
+# 环境变量，默认为开发环境
+ENV ?= dev
 
-AWS_ACCOUNT_ID := 440744252731
-AWS_REGION := ap-southeast-1
-PYTHON_REPO := $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/python-service
-GO_REPO := $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com/go-service
-CLUSTER_NAME := sentienfi-test-cluster
-ALB_GROUP_NAME := sentienfi-test-alb-group
-NAMESPACE ?= digitalaurion-test
-TFVARS ?= dev.tfvars
+# 从环境配置文件加载变量
+include envs/$(ENV)/.env
+export
 
-.PHONY: tf-init tf-plan tf-apply tf-destroy
+# 包含子模块
+include makefiles/terraform.mk
+include makefiles/docker.mk
+include makefiles/kubernetes.mk
+include makefiles/service-config.mk
 
-# 初始化
-tf-init:
-	cd terraform-eks-ecr && terraform init
-
-# 预览
-tf-plan:
-	cd terraform-eks-ecr && terraform plan -var-file=$(TFVARS)
-
-# 应用
-tf-apply:
-	cd terraform-eks-ecr && terraform apply -var-file=$(TFVARS) -auto-approve
-
-# 销毁
-tf-destroy:
-	cd terraform-eks-ecr && terraform destroy -var-file=$(TFVARS) -auto-approve
-
-build-python:
-	docker build --platform=linux/amd64 -t python-service ./python-service
-
-build-go:
-	docker build --platform=linux/amd64 -t go-service ./go-service
-
-push-python: build-python
-	docker tag python-service:latest $(PYTHON_REPO):latest
-	docker push $(PYTHON_REPO):latest
-
-push-go: build-go
-	docker tag go-service:latest $(GO_REPO):latest
-	docker push $(GO_REPO):latest
-
-login-ecr:
-	aws ecr get-login-password --region $(AWS_REGION) | docker login --username AWS --password-stdin $(AWS_ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com
-
-deploy:
-	aws eks update-kubeconfig --name $(CLUSTER_NAME) --region $(AWS_REGION) && \
-	export AWS_ACCOUNT_ID=$(AWS_ACCOUNT_ID) && \
-	export AWS_REGION=$(AWS_REGION) && \
-	export NAMESPACE=$(NAMESPACE) && \
-	export ALB_GROUP_NAME=$(ALB_GROUP_NAME) && \
-	kubectl config use-context arn:aws:eks:$(AWS_REGION):$(AWS_ACCOUNT_ID):cluster/$(CLUSTER_NAME) && \
-	envsubst < k8s/python-deployment.yaml | kubectl apply --validate=false -f - && \
-	envsubst < k8s/go-deployment.yaml | kubectl apply --validate=false -f - && \
-	envsubst < k8s/00-namespace.yaml | kubectl apply --validate=false -f - && \
-	envsubst < k8s/ingress.yaml | kubectl apply --validate=false -f - && \
-	envsubst < k8s/hpa.yaml | kubectl apply --validate=false -f - && \
-	kubectl rollout restart deployment/python-service deployment/go-service -n $(NAMESPACE)
-
-destroy:
-	kubectl delete -f k8s/
+# 主要的复合操作
+.PHONY: help
+help:
+	@echo "Available targets:"
+	@echo "  Terraform: tf-init, tf-plan, tf-apply, tf-destroy"
+	@echo "  Docker: build-all, push-all, build-<service>, push-<service>"
+	@echo "  Kubernetes: deploy-dev, deploy-test, deploy-prod"
+	@echo "  Utilities: list-services, help-docker"

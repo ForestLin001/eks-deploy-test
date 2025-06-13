@@ -12,19 +12,7 @@ metadata:
     alb.ingress.kubernetes.io/set-request-header: "X-Forwarded-Uri: /"
 spec:
   rules:
-    - http:
+    - host: ${DOMAIN_NAME}
+      http:
         paths:
-          - path: /python
-            pathType: Prefix
-            backend:
-              service:
-                name: python-service
-                port:
-                  number: 80
-          - path: /go
-            pathType: Prefix
-            backend:
-              service:
-                name: go-service
-                port:
-                  number: 80
+${INGRESS_PATHS}
