@@ -39,6 +39,9 @@ on:
 jobs:
   build-deploy:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash  # 明确指定使用 bash
     permissions:
       id-token: write
       contents: read

@@ -18,12 +18,12 @@ define deploy_env
 	for service in $(SERVICES); do \
 		if [ -f "envs/$(1)/$$service.env" ]; then \
 			echo "Deploying $$service..."; \
-			set -a && source "envs/$(1)/.env" && source "envs/$(1)/$$service.env" && export SERVICE_NAME=$$service && \
+			set -a && . "envs/$(1)/.env" && . "envs/$(1)/$$service.env" && export SERVICE_NAME=$$service && \
 			envsubst < k8s/01-service-deployment-template.yaml | kubectl apply --validate=false -f -; \
-			set -a && source "envs/$(1)/.env" && source "envs/$(1)/$$service.env" && export SERVICE_NAME=$$service && \
+			set -a && . "envs/$(1)/.env" && . "envs/$(1)/$$service.env" && export SERVICE_NAME=$$service && \
 			envsubst < k8s/02-hpa-template.yaml | kubectl apply --validate=false -f -; \
 			echo "Deploying ingress for $$service..."; \
-			set -a && source "envs/$(1)/.env" && source "envs/$(1)/$$service.env" && \
+			set -a && . "envs/$(1)/.env" && . "envs/$(1)/$$service.env" && \
 			export SERVICE_NAME=$$service && \
 			export SERVICE_PATH=`grep "^SERVICE_PATH=" "envs/$(1)/$$service.env" | cut -d'=' -f2 || echo "/$$service"` && \
 			envsubst < k8s/03-ingress-template.yaml | kubectl apply --validate=false -f -; \
