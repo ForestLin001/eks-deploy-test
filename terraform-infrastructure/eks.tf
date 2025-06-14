@@ -24,7 +24,7 @@ module "eks" {
   # 在 eks_managed_node_groups 中添加以下标签
   eks_managed_node_groups = {
     default = {
-      desired_size   = 3
+      desired_size   = 2
       max_size       = 5
       min_size       = 1
       instance_types = var.instance_types
