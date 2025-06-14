@@ -24,3 +24,8 @@ output "github_oidc_role_arn" {
 output "oidc_provider_url" {
   value = module.eks.cluster_oidc_issuer_url
 }
+
+output "metrics_server_status" {
+  # value = kubectl_manifest.metrics_server.status
+  value = helm_release.metrics_server.status
+}

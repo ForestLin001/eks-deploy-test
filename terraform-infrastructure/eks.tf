@@ -142,83 +142,10 @@ module "eks" {
   }
 }
 
-# 在文件末尾添加 Metrics Server 的 Helm 部署
-resource "helm_release" "metrics_server" {
-  name       = "metrics-server"
-  repository = "https://kubernetes-sigs.github.io/metrics-server/"
-  chart      = "metrics-server"
-  namespace  = "kube-system"
-  version    = "3.12.1"  # 使用最新稳定版本
-  
-  # 增加超时时间（秒）
-  timeout    = 1200  # 增加到 20 分钟
-  
-  # 添加 force_update 参数，强制更新现有 release
-  force_update = true
-  
-  # 添加 replace 参数，替换现有 release
-  replace      = true
-
-  # 确保在 EKS 集群创建完成后再安装
-  depends_on = [module.eks]
-
-  # Metrics Server 配置参数
-  set {
-    name  = "args"
-    value = "{--cert-dir=/tmp,--secure-port=4443,--kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname,--kubelet-use-node-status-port,--metric-resolution=15s,--kubelet-insecure-tls}"
-  }
-
-  set {
-    name  = "resources.requests.cpu"
-    value = "100m"
-  }
-
-  set {
-    name  = "resources.requests.memory"
-    value = "200Mi"
-  }
-
-  set {
-    name  = "resources.limits.cpu"
-    value = "200m"
-  }
-
-  set {
-    name  = "resources.limits.memory"
-    value = "400Mi"
-  }
+data "aws_eks_cluster" "cluster" {
+  name = var.cluster_name
 }
 
-resource "helm_release" "cluster_autoscaler" {
-  name       = "cluster-autoscaler"
-  repository = "https://kubernetes.github.io/autoscaler"
-  chart      = "cluster-autoscaler"
-  namespace  = "kube-system"
-  version    = "9.35.0"  # 使用最新稳定版本
-  
-  # 增加超时时间（秒）
-  timeout    = 600
-
-  # 确保在 EKS 集群创建完成后再安装
-  depends_on = [module.eks]
-
-  set {
-    name  = "autoDiscovery.clusterName"
-    value = var.cluster_name
-  }
-  
-  set {
-    name  = "awsRegion"
-    value = var.aws_region
-  }
-  
-  set {
-    name  = "rbac.serviceAccount.create"
-    value = "true"
-  }
-  
-  set {
-    name  = "rbac.serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
-    value = module.eks.eks_managed_node_groups.default.iam_role_arn
-  }
+data "aws_iam_openid_connect_provider" "eks" {
+  url = data.aws_eks_cluster.cluster.identity[0].oidc[0].issuer
 }
