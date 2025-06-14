@@ -36,7 +36,7 @@ generate-service-config:
 		echo "MEMORY_REQUEST=192Mi" >> envs/$(ENV)/$(SERVICE).env; \
 		echo "CPU_LIMIT=750m" >> envs/$(ENV)/$(SERVICE).env; \
 		echo "MEMORY_LIMIT=768Mi" >> envs/$(ENV)/$(SERVICE).env; \
-		echo "MIN_REPLICAS=2" >> envs/$(ENV)/$(SERVICE).env; \
+		echo "MIN_REPLICAS=1" >> envs/$(ENV)/$(SERVICE).env; \
 		echo "MAX_REPLICAS=5" >> envs/$(ENV)/$(SERVICE).env; \
 		echo "CPU_UTILIZATION=75" >> envs/$(ENV)/$(SERVICE).env; \
 		echo "MEMORY_UTILIZATION=80" >> envs/$(ENV)/$(SERVICE).env; \
