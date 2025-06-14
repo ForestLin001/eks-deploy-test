@@ -4,6 +4,7 @@ import (
     "encoding/json"
     "io"
     "net/http"
+    "os"
     "github.com/gin-gonic/gin"
 )
 
@@ -15,12 +16,31 @@ func main() {
     
     // 根路径处理，实际访问路径为/go/
     goGroup.GET("/", func(c *gin.Context) {
-        c.JSON(200, gin.H{"message": "Hello from Go Gin, root path"})
+        hostname, _ := os.Hostname()
+        
+        c.JSON(200, gin.H{
+            "message": "Hello from Go Gin, root path",
+            "host_info": gin.H{
+                "hostname":    hostname,
+                "node_name":   os.Getenv("K8S_NODE_NAME"),  // Kubernetes节点名
+                "pod_name":    os.Getenv("HOSTNAME"),      // Pod名称
+                "pod_ip":      os.Getenv("POD_IP"),        // Pod IP
+            },
+        })
     })
     
     // 保留原来的根路径处理，用于直接访问
     r.GET("/", func(c *gin.Context) {
-        c.JSON(200, gin.H{"message": "Hello from Go Gin, direct root path"})
+        hostname, _ := os.Hostname()
+        c.JSON(200, gin.H{
+            "message": "Hello from Go Gin, directly root path",
+            "host_info": gin.H{
+                "hostname":    hostname,
+                "node_name":   os.Getenv("K8S_NODE_NAME"),  // Kubernetes节点名
+                "pod_name":    os.Getenv("HOSTNAME"),      // Pod名称
+                "pod_ip":      os.Getenv("POD_IP"),        // Pod IP
+            },
+        })
     })
     // Call Python service endpoint
     goGroup.GET("/call-python", func(c *gin.Context) {
