@@ -51,6 +51,7 @@ jobs:
       AWS_REGION: ${{ secrets.AWS_REGION }}
       AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
       CLUSTER_NAME: ${{ secrets.CLUSTER_NAME }}
+      ENVIRONMENT: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || (github.ref == 'refs/heads/main' && 'prod' || (github.ref == 'refs/heads/test' && 'test' || 'dev')) }}
 
     steps:
     - name: Checkout code
@@ -72,4 +73,4 @@ jobs:
       run: make push-go-service
 
     - name: Deploy to EKS
-      run: make deploy-${{ env.environment }}
+      run: make deploy-${{ env.ENVIRONMENT }}
