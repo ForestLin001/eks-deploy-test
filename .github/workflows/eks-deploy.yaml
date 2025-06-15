@@ -23,7 +23,7 @@ name: Build & Deploy via Makefile
 
 on:
   push:
-    branches: [main]
+    branches: [main, test, dev]
   workflow_dispatch:
     inputs:
       environment:
