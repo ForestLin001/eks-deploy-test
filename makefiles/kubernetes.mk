@@ -10,6 +10,7 @@ define deploy_env
 	export AWS_REGION=$${AWS_REGION} && \
 	export NAMESPACE=$${NAMESPACE} && \
 	export ALB_GROUP_NAME=$${ALB_GROUP_NAME} && \
+	export CERTIFICATE_ID=$${CERTIFICATE_ID} && \
 	export DOMAIN_NAME=$${DOMAIN_NAME} && \
 	kubectl config use-context arn:aws:eks:$${AWS_REGION}:$${AWS_ACCOUNT_ID}:cluster/$${CLUSTER_NAME} && \
 	echo "Deploying namespace first..." && \
