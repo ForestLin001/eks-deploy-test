@@ -6,10 +6,34 @@ import (
     "net/http"
     "os"
     "github.com/gin-gonic/gin"
+    "github.com/joho/godotenv"
 )
 
 func main() {
     r := gin.Default()
+
+    // 加载.env文件
+    err := godotenv.Load()
+    if err != nil {
+        panic("Error loading .env file")
+    }
+
+    dbUser := os.Getenv("DB_USER")
+    if dbUser == "" {
+        panic("DB_USER not found in .env file")
+    }
+    dbPass := os.Getenv("DB_PASS")
+    if dbPass == "" {
+        panic("DB_PASS not found in .env file")
+    }
+    apiEndpoint := os.Getenv("API_ENDPOINT")
+    if apiEndpoint == "" {
+        panic("API_ENDPOINT not found in .env file")
+    }
+    featureFlag := os.Getenv("FEATURE_FLAG")
+    if featureFlag == "" {
+        panic("FEATURE_FLAG not found in .env file")
+    }
     
     // 创建一个路由组，所有路由都将以/go为前缀
     goGroup := r.Group("/go")
@@ -26,6 +50,12 @@ func main() {
                 "pod_name":    os.Getenv("HOSTNAME"),      // Pod名称
                 "pod_ip":      os.Getenv("POD_IP"),        // Pod IP
             },
+            "env_vars": gin.H{
+                "DB_USER":     dbUser,
+                "DB_PASSWORD": dbPass,
+                "API_ENDPOINT": apiEndpoint,
+                "FEATURE_FLAG": featureFlag,
+            },
         })
     })
     
@@ -39,6 +69,9 @@ func main() {
                 "node_name":   os.Getenv("K8S_NODE_NAME"),  // Kubernetes节点名
                 "pod_name":    os.Getenv("HOSTNAME"),      // Pod名称
                 "pod_ip":      os.Getenv("POD_IP"),        // Pod IP
+            },
+            "env_vars": gin.H{
+                "DB_PASSWORD": dbPass,
             },
         })
     })

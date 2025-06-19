@@ -106,3 +106,26 @@ variable "github_repo" {
   type        = string
   default     = "your-org/your-repo"
 }
+
+variable "eso_namespace" {
+  description = "Namespace where External Secrets Operator will be deployed"
+  type        = string
+  default     = "external-secrets"
+}
+
+variable "eso_service_account_name" {
+  description = "Name of the Service Account for External Secrets Operator"
+  type        = string
+  default     = "external-secrets-sa"
+}
+
+variable "ssm_prefix" {
+  description = "Prefix for SSM parameters that ESO will access"
+  type        = string
+}
+
+variable "cluster_secret_store_name" {
+  description = "Name for the ClusterSecretStore resource"
+  type        = string
+  default     = "aws-ssm-store"
+}

@@ -1,0 +1,22 @@
+namespace: sentienfi-dev
+
+ssm:
+  region: ap-northeast-1
+  configMapPrefix: /sentienfi-dev/go-service
+  secretPrefix: /sentienfi-dev/go-service
+
+configMapKeys:
+  - name: API_ENDPOINT
+    key: API_ENDPOINT
+  - name: FEATURE_FLAG
+    key: FEATURE_FLAG
+
+secretKeys:
+  - name: DB_USER
+    key: DB_USER
+  - name: DB_PASS
+    key: DB_PASS
+
+secretStore:
+  name: aws-ssm-store
+  kind: ClusterSecretStore

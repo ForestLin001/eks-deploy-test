@@ -18,3 +18,7 @@ vpc_tags = {
   Environment = "production"
 }
 github_repo             = "aurion-group/*"
+eso_namespace           = "external-secrets"
+eso_service_account_name = "external-secrets-sa"
+ssm_prefix              = "aurion-group-prod"
+cluster_secret_store_name = "aws-ssm-store"

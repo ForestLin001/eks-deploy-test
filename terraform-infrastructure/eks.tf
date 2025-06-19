@@ -149,3 +149,38 @@ data "aws_eks_cluster" "cluster" {
 data "aws_iam_openid_connect_provider" "eks" {
   url = data.aws_eks_cluster.cluster.identity[0].oidc[0].issuer
 }
+
+# 获取EKS节点组角色名称（假设模块输出为 node_group_role_name）
+data "aws_iam_role" "eks_node_role" {
+  name = module.eks.eks_managed_node_groups["default"].iam_role_name
+}
+
+# 创建EBS CSI所需的IAM策略
+resource "aws_iam_policy" "eks_node_ebs" {
+  name        = "eks-node-ebs-policy"
+  description = "EKS node group policy for EBS volume management"
+  policy      = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ec2:CreateVolume",
+        "ec2:CreateTags",
+        "ec2:DeleteVolume",
+        "ec2:AttachVolume",
+        "ec2:DetachVolume"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
+EOF
+}
+
+# 绑定策略到节点组角色
+resource "aws_iam_role_policy_attachment" "eks_node_create_volume" {
+  role       = data.aws_iam_role.eks_node_role.name
+  policy_arn = aws_iam_policy.eks_node_ebs.arn
+}

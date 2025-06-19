@@ -18,3 +18,7 @@ vpc_tags = {
   Environment = "test"
 }
 github_repo             = "aurion-group/*"
+eso_namespace           = "external-secrets"
+eso_service_account_name = "external-secrets-sa"
+ssm_prefix              = "sentienfi-test"
+cluster_secret_store_name = "aws-ssm-store"
