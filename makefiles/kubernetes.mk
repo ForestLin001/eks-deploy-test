@@ -15,6 +15,30 @@ define deploy_env
 	kubectl config use-context arn:aws:eks:$${AWS_REGION}:$${AWS_ACCOUNT_ID}:cluster/$${CLUSTER_NAME} && \
 	echo "Deploying namespace first..." && \
 	envsubst < k8s/00-namespace-template.yaml | kubectl apply --validate=false -f - && \
+	echo "Deploying ExternalSecrets..."
+	for service in $(SERVICES); do \
+		if [ -f "envs/$(1)/$$service.env" ]; then \
+			echo "Deploying ExternalSecret for $$service..."; \
+			set -a && . "envs/$(1)/.env" && . "envs/$(1)/$$service.env" && \
+			export SERVICE_NAME=$$service && \
+			export SECRET_STORE_NAME=$$SECRET_STORE_NAME && \
+			export SECRET_STORE_KIND=$$SECRET_STORE_KIND && \
+			export SSM_PREFIX="/$$NAMESPACE" && \
+			keys=$$(grep "^EXTERNAL_SECRET_KEYS=" "envs/$(1)/$$service.env" | cut -d'=' -f2 | tr -d '"') && \
+			echo "$$keys" | tr ',' '\n' | { \
+				echo "  data:"; \
+				while read -r key; do \
+					echo "    - secretKey: $$key"; \
+					echo "      remoteRef:"; \
+					echo "        key: $$SSM_PREFIX/$$SERVICE_NAME/$$key"; \
+				done; \
+			} > /tmp/external_secret_data_$$service.yaml && \
+			cat /tmp/external_secret_data_$$service.yaml && \
+			export EXTERNAL_SECRET_DATA="$$(cat /tmp/external_secret_data_$$service.yaml)" && \
+			envsubst < k8s/04-externalsecret-template.yaml | kubectl apply --validate=false -f - && \
+			rm -f /tmp/external_secret_data_$$service.yaml; \
+		fi; \
+	done && \
 	echo "Deploying all services and their HPAs dynamically..." && \
 	for service in $(SERVICES); do \
 		if [ -f "envs/$(1)/$$service.env" ]; then \
@@ -37,7 +61,13 @@ define deploy_env
 		if kubectl get deployment $$service -n $(NAMESPACE) >/dev/null 2>&1; then \
 			kubectl rollout restart deployment/$$service -n $(NAMESPACE); \
 		fi; \
-	done
+	done && \
+	echo "Restarting external-secrets deployment..." && \
+	kubectl rollout restart deployment/external-secrets -n external-secrets && \
+	echo "Waiting for external-secrets deployment rollout to complete..." && \
+	kubectl rollout status deployment/external-secrets -n external-secrets && \
+	echo "✓ All service deployments restarted successfully" || \
+	echo "✗ Failed to restart all service deployments"
 endef
 
 # 环境特定部署

@@ -18,9 +18,7 @@ spec:
           image: ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${SERVICE_NAME}:latest
           envFrom:
             - secretRef:
-                name: ${SERVICE_NAME}-secret
-            - configMapRef:
-                name: ${SERVICE_NAME}-configmap
+                name: ${SERVICE_NAME}-config
           imagePullPolicy: Always
           ports:
             - containerPort: ${CONTAINER_PORT}
