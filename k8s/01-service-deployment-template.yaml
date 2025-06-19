@@ -18,7 +18,7 @@ spec:
           image: ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${SERVICE_NAME}:latest
           envFrom:
             - secretRef:
-                name: ${SERVICE_NAME}-secrets
+                name: ${SERVICE_NAME}-secret
             - configMapRef:
                 name: ${SERVICE_NAME}-configmap
           imagePullPolicy: Always
