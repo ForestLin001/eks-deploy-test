@@ -4,3 +4,5 @@
 *.tfstate
 *.tfstate.*
 *.bak
+services/python-service/.env
+services/go-service/.env
