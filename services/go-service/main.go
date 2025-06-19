@@ -12,27 +12,30 @@ import (
 func main() {
     r := gin.Default()
 
-    // 加载.env文件
+    // 尝试加载.env文件，如果失败则忽略（适用于Kubernetes环境）
     err := godotenv.Load()
     if err != nil {
-        panic("Error loading .env file")
+        // 在Kubernetes环境中，这是正常的，因为配置通过环境变量传递
+        // 不需要panic，只需要记录日志或忽略
+        // log.Println("No .env file found, using environment variables")
     }
 
+    // 从环境变量读取配置
     dbUser := os.Getenv("DB_USER")
     if dbUser == "" {
-        panic("DB_USER not found in .env file")
+        panic("DB_USER environment variable not set")
     }
     dbPass := os.Getenv("DB_PASS")
     if dbPass == "" {
-        panic("DB_PASS not found in .env file")
+        panic("DB_PASS environment variable not set")
     }
     apiEndpoint := os.Getenv("API_ENDPOINT")
     if apiEndpoint == "" {
-        panic("API_ENDPOINT not found in .env file")
+        panic("API_ENDPOINT environment variable not set")
     }
     featureFlag := os.Getenv("FEATURE_FLAG")
     if featureFlag == "" {
-        panic("FEATURE_FLAG not found in .env file")
+        panic("FEATURE_FLAG environment variable not set")
     }
     
     // 创建一个路由组，所有路由都将以/go为前缀
