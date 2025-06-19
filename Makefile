@@ -2,6 +2,7 @@
 ENV ?= dev
 
 # 从环境配置文件加载变量
+include envs/base/common.env
 include envs/$(ENV)/.env
 export
 

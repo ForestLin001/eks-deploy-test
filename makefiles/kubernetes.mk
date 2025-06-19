@@ -4,7 +4,7 @@
 
 # 通用部署函数
 define deploy_env
-	@echo "Updating kubeconfig for $(1) environment..."
+	@echo "Updating kubeconfig for $(1) environment..." && \
 	aws eks update-kubeconfig --name $${CLUSTER_NAME} --region $${AWS_REGION} && \
 	export AWS_ACCOUNT_ID=$${AWS_ACCOUNT_ID} && \
 	export AWS_REGION=$${AWS_REGION} && \
@@ -15,16 +15,26 @@ define deploy_env
 	kubectl config use-context arn:aws:eks:$${AWS_REGION}:$${AWS_ACCOUNT_ID}:cluster/$${CLUSTER_NAME} && \
 	echo "Deploying namespace first..." && \
 	envsubst < k8s/00-namespace-template.yaml | kubectl apply --validate=false -f - && \
-	echo "Deploying ExternalSecrets..."
+	echo "Deploying all services and their HPAs and ExternalSecrets dynamically..." && \
 	for service in $(SERVICES); do \
 		if [ -f "envs/$(1)/$$service.env" ]; then \
+			echo "Deploying $$service..."; \
+			set -a && . "envs/base/$$service.env" && . "envs/$(1)/.env" && . "envs/$(1)/$$service.env" && export SERVICE_NAME=$$service && \
+			envsubst < k8s/01-service-deployment-template.yaml | kubectl apply --validate=false -f -; \
+			set -a && . "envs/base/$$service.env" && . "envs/$(1)/.env" && . "envs/$(1)/$$service.env" && export SERVICE_NAME=$$service && \
+			envsubst < k8s/02-hpa-template.yaml | kubectl apply --validate=false -f -; \
+			echo "Deploying ingress for $$service..."; \
+			set -a && . "envs/base/$$service.env" && . "envs/$(1)/.env" && . "envs/$(1)/$$service.env" && \
+			export SERVICE_NAME=$$service && \
+			export SERVICE_PATH=`grep "^SERVICE_PATH=" "envs/base/$$service.env" | cut -d'=' -f2 || echo "/$$service"` && \
+			envsubst < k8s/03-ingress-template.yaml | kubectl apply --validate=false -f -; \
 			echo "Deploying ExternalSecret for $$service..."; \
-			set -a && . "envs/$(1)/.env" && . "envs/$(1)/$$service.env" && \
+			set -a && . "envs/base/$$service.env" && . "envs/$(1)/.env" && . "envs/$(1)/$$service.env" && \
 			export SERVICE_NAME=$$service && \
 			export SECRET_STORE_NAME=$$SECRET_STORE_NAME && \
 			export SECRET_STORE_KIND=$$SECRET_STORE_KIND && \
 			export SSM_PREFIX="/$$NAMESPACE" && \
-			keys=$$(grep "^EXTERNAL_SECRET_KEYS=" "envs/$(1)/$$service.env" | cut -d'=' -f2 | tr -d '"') && \
+			keys=$$(grep "^EXTERNAL_SECRET_KEYS=" "envs/base/$$service.env" | cut -d'=' -f2 | tr -d '"') && \
 			echo "$$keys" | tr ',' '\n' | { \
 				echo "  data:"; \
 				while read -r key; do \
@@ -33,25 +43,9 @@ define deploy_env
 					echo "        key: $$SSM_PREFIX/$$SERVICE_NAME/$$key"; \
 				done; \
 			} > /tmp/external_secret_data_$$service.yaml && \
-			cat /tmp/external_secret_data_$$service.yaml && \
 			export EXTERNAL_SECRET_DATA="$$(cat /tmp/external_secret_data_$$service.yaml)" && \
 			envsubst < k8s/04-externalsecret-template.yaml | kubectl apply --validate=false -f - && \
 			rm -f /tmp/external_secret_data_$$service.yaml; \
-		fi; \
-	done && \
-	echo "Deploying all services and their HPAs dynamically..." && \
-	for service in $(SERVICES); do \
-		if [ -f "envs/$(1)/$$service.env" ]; then \
-			echo "Deploying $$service..."; \
-			set -a && . "envs/$(1)/.env" && . "envs/$(1)/$$service.env" && export SERVICE_NAME=$$service && \
-			envsubst < k8s/01-service-deployment-template.yaml | kubectl apply --validate=false -f -; \
-			set -a && . "envs/$(1)/.env" && . "envs/$(1)/$$service.env" && export SERVICE_NAME=$$service && \
-			envsubst < k8s/02-hpa-template.yaml | kubectl apply --validate=false -f -; \
-			echo "Deploying ingress for $$service..."; \
-			set -a && . "envs/$(1)/.env" && . "envs/$(1)/$$service.env" && \
-			export SERVICE_NAME=$$service && \
-			export SERVICE_PATH=`grep "^SERVICE_PATH=" "envs/$(1)/$$service.env" | cut -d'=' -f2 || echo "/$$service"` && \
-			envsubst < k8s/03-ingress-template.yaml | kubectl apply --validate=false -f -; \
 		else \
 			echo "Warning: No config file found for $$service, skipping..."; \
 		fi; \

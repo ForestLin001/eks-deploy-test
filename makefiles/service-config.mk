@@ -12,12 +12,12 @@ generate-service-config:
 		exit 1; \
 	fi
 	@mkdir -p envs/$(ENV)
-	@echo "SERVICE_NAME=$(SERVICE)" > envs/$(ENV)/$(SERVICE).env
-	@echo "CONTAINER_PORT=$(PORT)" >> envs/$(ENV)/$(SERVICE).env
+	@echo "SERVICE_NAME=$(SERVICE)" > envs/base/$(SERVICE).env
+	@echo "CONTAINER_PORT=$(PORT)" >> envs/base/$(SERVICE).env
 	@if [ -n "$(SERVICE_PATH)" ]; then \
-		echo "SERVICE_PATH=$(SERVICE_PATH)" >> envs/$(ENV)/$(SERVICE).env; \
+		echo "SERVICE_PATH=$(SERVICE_PATH)" >> envs/base/$(SERVICE).env; \
 	else \
-		echo "SERVICE_PATH=/$(SERVICE)" >> envs/$(ENV)/$(SERVICE).env; \
+		echo "SERVICE_PATH=/$(SERVICE)" >> envs/base/$(SERVICE).env; \
 	fi
 	@echo "# Resource and HPA configuration" >> envs/$(ENV)/$(SERVICE).env
 	@if [ "$(ENV)" = "dev" ]; then \
@@ -68,8 +68,8 @@ generate-all-service-configs:
 	@echo "Generating service configs for all services..."
 	@for service in $(SERVICES); do \
 		if [ -f "envs/$(ENV)/$$service.env" ]; then \
-			port=$$(grep "^CONTAINER_PORT=" "envs/$(ENV)/$$service.env" | cut -d'=' -f2); \
-			service_path=$$(grep "^SERVICE_PATH=" "envs/$(ENV)/$$service.env" | cut -d'=' -f2); \
+			port=$$(grep "^CONTAINER_PORT=" "envs/base/$$service.env" | cut -d'=' -f2); \
+			service_path=$$(grep "^SERVICE_PATH=" "envs/base/$$service.env" | cut -d'=' -f2); \
 			if [ -n "$$port" ]; then \
 				echo "Using existing port $$port for $$service"; \
 				if [ -n "$$service_path" ]; then \
