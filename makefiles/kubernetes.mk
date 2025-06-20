@@ -35,16 +35,14 @@ define deploy_env
 			export SECRET_STORE_NAME=$$SECRET_STORE_NAME && \
 			export SECRET_STORE_KIND=$$SECRET_STORE_KIND && \
 			export SSM_PREFIX="/$$NAMESPACE" && \
-			{ \
-				echo "  data:"; \
-				sed -n '/^EXTERNAL_SECRET_KEYS=(/,/^)/p' "envs/base/$$service.env" | \
-				grep '".*"' | \
-				sed 's/.*"\([^"]*\)".*/\1/' | \
-				while read -r key; do \
-					echo "    - secretKey: $$key"; \
-					echo "      remoteRef:"; \
-					echo "        key: $$SSM_PREFIX/$$SERVICE_NAME/$$key"; \
-				done; \
+			keys=$$(grep "^EXTERNAL_SECRET_KEYS=" "envs/base/$$service.env" | cut -d'=' -f2 | tr -d '"') && \
+			echo "$$keys" | tr ',' '\n' | { \
+			echo "  data:"; \
+			while read -r key; do \
+			echo "    - secretKey: $$key"; \
+			echo "      remoteRef:"; \
+			echo "        key: $$SSM_PREFIX/$$SERVICE_NAME/$$key"; \
+			done; \
 			} > /tmp/external_secret_data_$$service.yaml && \
 			export EXTERNAL_SECRET_DATA="$$(cat /tmp/external_secret_data_$$service.yaml)" && \
 			envsubst < k8s/04-externalsecret-template.yaml | kubectl apply --validate=false -f - && \
