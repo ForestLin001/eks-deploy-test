@@ -13,30 +13,33 @@ define deploy_env
 	export CERTIFICATE_ID=$${CERTIFICATE_ID} && \
 	export DOMAIN_NAME=$${DOMAIN_NAME} && \
 	kubectl config use-context arn:aws:eks:$${AWS_REGION}:$${AWS_ACCOUNT_ID}:cluster/$${CLUSTER_NAME} && \
-	echo "Deploying namespace first..." && \
+	echo "############## Deploying namespace first..." && \
 	envsubst < k8s/00-namespace-template.yaml | kubectl apply --validate=false -f - && \
-	echo "Deploying all services and their HPAs and ExternalSecrets dynamically..." && \
+	echo "############## Deploying all services and their HPAs and ExternalSecrets dynamically..." && \
 	for service in $(SERVICES); do \
 		if [ -f "envs/$(1)/$$service.env" ]; then \
-			echo "Deploying $$service..."; \
+			echo "############## Deploying $$service..."; \
 			set -a && . "envs/base/$$service.env" && . "envs/$(1)/.env" && . "envs/$(1)/$$service.env" && export SERVICE_NAME=$$service && \
 			envsubst < k8s/01-service-deployment-template.yaml | kubectl apply --validate=false -f -; \
+			echo "############## Deploying HPA for $$service..."; \
 			set -a && . "envs/base/$$service.env" && . "envs/$(1)/.env" && . "envs/$(1)/$$service.env" && export SERVICE_NAME=$$service && \
 			envsubst < k8s/02-hpa-template.yaml | kubectl apply --validate=false -f -; \
-			echo "Deploying ingress for $$service..."; \
+			echo "############## Deploying ingress for $$service..."; \
 			set -a && . "envs/base/$$service.env" && . "envs/$(1)/.env" && . "envs/$(1)/$$service.env" && \
 			export SERVICE_NAME=$$service && \
 			export SERVICE_PATH=`grep "^SERVICE_PATH=" "envs/base/$$service.env" | cut -d'=' -f2 || echo "/$$service"` && \
 			envsubst < k8s/03-ingress-template.yaml | kubectl apply --validate=false -f -; \
-			echo "Deploying ExternalSecret for $$service..."; \
+			echo "############## Deploying ExternalSecret for $$service..."; \
 			set -a && . "envs/base/$$service.env" && . "envs/$(1)/.env" && . "envs/$(1)/$$service.env" && \
 			export SERVICE_NAME=$$service && \
 			export SECRET_STORE_NAME=$$SECRET_STORE_NAME && \
 			export SECRET_STORE_KIND=$$SECRET_STORE_KIND && \
 			export SSM_PREFIX="/$$NAMESPACE" && \
-			keys=$$(grep "^EXTERNAL_SECRET_KEYS=" "envs/base/$$service.env" | cut -d'=' -f2 | tr -d '"') && \
-			echo "$$keys" | tr ',' '\n' | { \
+			{ \
 				echo "  data:"; \
+				sed -n '/^EXTERNAL_SECRET_KEYS=(/,/^)/p' "envs/base/$$service.env" | \
+				grep '".*"' | \
+				sed 's/.*"\([^"]*\)".*/\1/' | \
 				while read -r key; do \
 					echo "    - secretKey: $$key"; \
 					echo "      remoteRef:"; \
